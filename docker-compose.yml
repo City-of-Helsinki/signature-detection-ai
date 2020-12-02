@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  backend:
+    container_name: hki-backend
+    build: ./backend
+    command: ["run_server.py", "--debug"]
+  
+  frontend:
+    container_name: hki-frontend
+    build: ./frontend
+    ports:
+      - 1337:80
+
+  

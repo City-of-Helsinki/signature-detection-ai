@@ -26,8 +26,8 @@ class SignatureDetectionApiApp:
         }
         self.api = swagger.docs(Api(self.app, errors=custom_errors), apiVersion=API_VERSION_NUMBER)
         
-        self.api.add_resource(DummyEndpoint, '/dummy', endpoint='dummy')
-        self.api.add_resource(HelloEndpoint, '/hello', endpoint='hello')
+        #self.api.add_resource(DummyEndpoint, '/dummy', endpoint='dummy')
+        #self.api.add_resource(HelloEndpoint, '/hello', endpoint='hello')
         self.api.add_resource(AnalysisEndpoint, '/analyze', endpoint='analyze')
 
     def run(self, *args, **kwargs):

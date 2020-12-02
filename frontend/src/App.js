@@ -12,17 +12,21 @@ import { Button,
          TableHead,
          TableRow } from '@material-ui/core';
 import { PictureAsPdf}  from '@material-ui/icons';
+import download from 'downloadjs';
 
 
 function App() {
   const [pdfFiles, setPdfFiles] = useState([]);
   const [results, setResults] = useState([]);
   const [view, setView] = useState('input');
+  const [csv, setCsv] = useState('');
+  const [classificationDuration, setClassificationDuration] = useState(-1.0);
+  const [requestDuration, setRequestDuration] = useState([-1.0]);
 
   const analyzeFiles = () => {
     const formData = new FormData();
     formData.append('num_files', pdfFiles.length);
-    for(const [i, pdfFile] of pdfFiles.entries()) {
+    for(const pdfFile of pdfFiles) {
       formData.append(pdfFile.name, pdfFile);
     }
 
@@ -34,11 +38,21 @@ function App() {
     console.log('Sending files for analysis');
     console.log(Array.from(formData.keys()));
     setView('loading');
-    fetch('http://localhost:5000/analyze', options)
+    const t0 = new Date().getTime();
+    //console.log(t0.getTime());
+    //setRequestDuration(-1 * new Date().getTime()/1000.0);
+    fetch('/analyze', options)
       .then((response) => response.json())
       .then((data) => {
         console.log('Got response:', data);
         setResults(data.results);
+        setCsv(data.csv);
+        setClassificationDuration(data.classification_duration);
+        //console.log('t0', t0)
+        //console.log('requestDuration', requestDuration);
+        const duration = (new Date().getTime() - t0)/1000.0;
+        console.log('duration', duration);
+        setRequestDuration(duration); 
         setView('results');
       })
       .catch((error) => console.log('analyzeFiles() error:', error));
@@ -80,7 +94,7 @@ function App() {
         {view === 'loading' ?
           <Box my={4} p={2} textAlign="center" minHeight={400}>
             <Typography variant="h4" component="h1" gutterBottom>
-              Prosessoidaan...
+              Etsitään allekirjoituksia...
             </Typography>
             <Box my={12}>
               <CircularProgress />
@@ -104,13 +118,13 @@ function App() {
               </TableHead>
               <TableBody>
                 {results.map((row) => (
-                  <TableRow key={row.filename}>
+                  <TableRow key={row.document}>
                     <TableCell component="th" scope="row">
-                      {row.filename}
+                      {row.document}
                     </TableCell>
                     <TableCell>{row.status}</TableCell>
                     <TableCell>{row.num_pages}</TableCell>
-                    <TableCell>{row.positive.join(", ")}</TableCell>
+                    <TableCell>{row.positive.length > 0 ? row.positive.join(", ") : 'Ei allekirjoituksia'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -119,10 +133,26 @@ function App() {
               <Button 
                 variant="contained" 
                 color="primary"
-                onClick={() => setView('input')}>
+                onClick={() => {
+                  setView('input')
+                }}>
                   Takaisin
               </Button>
             </Box>
+            <Box my={2}>
+              <Button 
+                variant="contained" 
+                color="primary"
+                onClick={() => download(csv, 'results.csv', 'text/csv')}>
+                  Tallenna CSV
+              </Button>
+            </Box>
+            <Box>
+              <Typography>Kokonaiskesto: {requestDuration.toFixed(1)} s</Typography>
+              <Typography>Luokittelu: {classificationDuration.toFixed(1)} s</Typography>
+              <Typography>Tiedonsiirto: {(requestDuration-classificationDuration).toFixed(1)} s</Typography>
+            </Box>
+            
           </Box>
         : null}
       </Paper>

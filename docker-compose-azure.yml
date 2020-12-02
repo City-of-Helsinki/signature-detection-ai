@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  backend:
+    image: "hkiallekirjoituksentunnistus.azurecr.io/backend"
+    restart: always
+
+  frontend:
+    image: "hkiallekirjoituksentunnistus.azurecr.io/frontend"
+    ports:
+      - 80:80
+    restart: always

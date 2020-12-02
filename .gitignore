@@ -130,3 +130,6 @@ dmypy.json
 
 # All data files
 data/**
+
+# All saved models
+*.pth

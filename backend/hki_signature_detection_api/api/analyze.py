@@ -12,7 +12,7 @@ from hki_sig_ml.inference import create_inference_model, classify
 
 from .models import AnalysisResult
 
-learner = create_inference_model('resnet18_lean', path='/app', model='resnet18')
+learner = create_inference_model('resnet34_data_aug_sigscale_best', path='/app', model='resnet34')
 
 class AnalysisEndpoint(Resource):
     @swagger.operation(

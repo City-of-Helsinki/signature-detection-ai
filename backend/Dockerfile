@@ -1,8 +1,8 @@
-FROM fastai/fastai:latest
+FROM fastai/fastai:2020-11-15
+# Note: there is a bug in more recent images. I've filed a bug
+# report and once it's resolved the :latest tag could be used.
 
 RUN apt update && apt install -y poppler-utils
-
-#COPY resnet34-333f7ec4.pth /root/.cache/torch/hub/checkpoints/resnet34-333f7ec4.pth
 
 COPY hki_sig_ml /ml_lib
 

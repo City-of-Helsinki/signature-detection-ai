@@ -18,9 +18,9 @@ from tqdm import tqdm
 from cairosvg import svg2png
 
 
-memory = Memory('.joblib_cache')
-convert_pdf = memory.cache(convert_from_path, verbose=0)
-
+#memory = Memory('.joblib_cache')
+#convert_pdf = memory.cache(convert_from_path, verbose=0)
+convert_pdf = convert_from_path
 
 def get_tiles(image: Image, tile_size: int):
     n_x, n_y = int(np.ceil(image.width/tile_size)), int(np.ceil(image.height/tile_size))

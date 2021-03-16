@@ -6,21 +6,21 @@ import random
 from fastai.data.block import TransformBlock
 from fastai.data.transforms import get_files, IntToFloatTensor
 from fastai.torch_core import TensorCategory
-from fastai.vision.core import PILImage
+from fastai.vision.core import PILImage, PILImageBW
 from fastcore.foundation import L
 from fastcore.transform import ItemTransform
 from joblib import Memory
 import numpy as np
 from pdf2image import convert_from_path
-from PIL import Image, ImageFilter
+from PIL import Image, ImageFilter, ImageOps
 import scipy.stats
 from tqdm import tqdm
 from cairosvg import svg2png
 
 
-memory = Memory('.joblib_cache')
-convert_pdf = memory.cache(convert_from_path, verbose=0)
-
+#memory = Memory('.joblib_cache')
+#convert_pdf = memory.cache(convert_from_path, verbose=0)
+convert_pdf = convert_from_path
 
 def get_tiles(image: Image, tile_size: int):
     n_x, n_y = int(np.ceil(image.width/tile_size)), int(np.ceil(image.height/tile_size))
@@ -128,7 +128,7 @@ def get_signature_image(svg_spec: dict, width: int=100, prob_rotate: float=1.0,
 
 
 def create_synthetic_image(doc_spec: dict, svg_specs: list, positive_prob: float=0.5, 
-                           dpi: int=50) -> None:
+                           dpi: int=50, image_cls=PILImage) -> None:
     #print(doc_spec)
     doc_img = convert_pdf(pdf_path=doc_spec['path'],
                           dpi=dpi,
@@ -149,8 +149,11 @@ def create_synthetic_image(doc_spec: dict, svg_specs: list, positive_prob: float
         y = random.randint(-sig_img.height//2, doc_img.height-sig_img.height//2)
         doc_img.paste(sig_img, [x,y], sig_img)
         label = 1
+        
+    if image_cls == PILImageBW:
+        doc_img = ImageOps.invert(ImageOps.grayscale(doc_img))# doc_img.convert('L')
 
-    return (PILImage.create(np.array(doc_img)), TensorCategory(label))
+    return (image_cls.create(np.array(doc_img)), TensorCategory(label))
 
 
 def create_tile_image(doc_spec: dict, dpi: int=50) -> None:
@@ -165,9 +168,9 @@ def create_tile_image(doc_spec: dict, dpi: int=50) -> None:
     return (PILImage.create(np.array(doc_img)), TensorCategory(0))
 
 
-def SyntheticImageBlock(svg_directory: Path, positive_prob: float = 0.5):
+def SyntheticImageBlock(svg_directory: Path, positive_prob: float = 0.5, image_cls=PILImage):
     svg_specs = get_svg_signatures(svg_directory)
-    return TransformBlock(type_tfms=lambda doc_spec: create_synthetic_image(doc_spec, svg_specs, positive_prob), 
+    return TransformBlock(type_tfms=lambda doc_spec: create_synthetic_image(doc_spec, svg_specs, positive_prob, image_cls=image_cls), 
                           batch_tfms=IntToFloatTensor)
 
 
